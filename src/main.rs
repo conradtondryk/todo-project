@@ -77,10 +77,9 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let input = Cli::parse();
     let cmd = input.command;
-    if let Err(e) = json_editor(cmd) {
-        eprintln!("Error: {}", e);
-    }
+    json_editor(cmd)?;
+    Ok(())
 }
