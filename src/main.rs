@@ -29,7 +29,7 @@ struct Task {
 
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     let json_data = fs::read_to_string(Path::new("list.json"))?;
-    let task: Task = serde_json::from_str(&json_data)?;
+    let mut tasks: Vec<Task> = serde_json::from_str(&json_data)?;
 
     match command {
         Commands::Add { name } => {
@@ -39,8 +39,9 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
                 name: name.clone(),
                 completed: false,
             };
+            tasks.push(data);
             let file = File::create("list.json")?;
-            serde_json::to_writer(file, &data)?;
+            serde_json::to_writer(file, &tasks)?;
             Ok(())
         }
         Commands::Remove { name } => {
@@ -48,9 +49,10 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
         Commands::View => {
-            println!("{:?}", task.id);
-            println!("{:?}", task.name);
-            println!("{:?}", task.completed);
+            for task in tasks.iter() {
+                println!("{:?}", task.name);
+                println!("{:?}", task.completed);
+            }
             Ok(())
         }
     }
