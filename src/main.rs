@@ -18,6 +18,7 @@ enum Commands {
     Add { name: String },
     Remove { name: String },
     View,
+    Complete { name: String },
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -62,6 +63,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             }
             Ok(())
         }
+        Commands::Complete { name } => Ok(()),
     }
 }
 
