@@ -35,7 +35,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
         Commands::Add { name } => {
             println!("{name} added!");
             let data = Task {
-                id: 0,
+                id: tasks.len() as i32 + 1,
                 name: name.clone(),
                 completed: false,
             };
