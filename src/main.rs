@@ -69,7 +69,9 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
                 .position(|task| task.name == name)
                 .ok_or_else(|| format!("Task '{name}' not found!"))?;
             tasks[index].completed = true;
-
+            println!("'{name}' completed!");
+            let file = File::create("list.json")?;
+            serde_json::to_writer(file, &tasks)?;
             Ok(())
         }
     }
