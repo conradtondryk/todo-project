@@ -1,7 +1,10 @@
 use clap::{Parser, Subcommand};
-use serde::Deserialize;
-use serde_json;
-use std::{env, fs, path::Path};
+use serde::{Deserialize, Serialize};
+
+use std::{
+    fs::{self, File},
+    path::Path,
+};
 
 #[derive(Parser)]
 #[command(name = "todo")]
@@ -17,7 +20,7 @@ enum Commands {
     View,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 struct Task {
     id: i32,
     name: String,
@@ -31,6 +34,13 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     match command {
         Commands::Add { name } => {
             println!("{name} added!");
+            let data = Task {
+                id: 0,
+                name: name.clone(),
+                completed: false,
+            };
+            let file = File::create("list.json")?;
+            serde_json::to_writer(file, &data)?;
             Ok(())
         }
         Commands::Remove { name } => {
@@ -48,7 +58,6 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
 
 fn main() {
     let input = Cli::parse();
-
     let cmd = input.command;
     if let Err(e) = json_editor(cmd) {
         eprintln!("Error: {}", e);
