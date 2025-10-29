@@ -28,7 +28,7 @@ struct Task {
 }
 
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
-    let json_data = fs::read_to_string(Path::new("list.json")).expect("");
+    let json_data = fs::read_to_string(Path::new("list.json"))?;
     let task: Task = serde_json::from_str(&json_data)?;
 
     match command {
