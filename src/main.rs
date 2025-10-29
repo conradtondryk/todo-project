@@ -1,5 +1,6 @@
 #![warn(clippy::pedantic)]
 
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +31,7 @@ struct Task {
     completed: bool,
 }
 
-fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
+fn json_editor(command: Commands) -> Result<()> {
     let json_data = fs::read_to_string(Path::new("list.json"))?;
     let mut tasks: Vec<Task> = serde_json::from_str(&json_data)?;
 
@@ -51,7 +52,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             let index = tasks
                 .iter()
                 .position(|task| task.name == name)
-                .ok_or_else(|| format!("Task '{name}' not found!"))?;
+                .context(format!("Task '{name}' not found!"))?;
             tasks.remove(index);
             println!("{name} removed!");
             let file = File::create("list.json")?;
@@ -69,7 +70,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             let index = tasks
                 .iter()
                 .position(|task| task.name == name)
-                .ok_or_else(|| format!("Task '{name}' not found!"))?;
+                .context(format!("Task '{name}' not found!"))?;
             tasks[index].completed = true;
             println!("'{name}' completed!");
             let file = File::create("list.json")?;
@@ -79,7 +80,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     let Cli { command } = Cli::parse();
     json_editor(command)?;
     Ok(())
