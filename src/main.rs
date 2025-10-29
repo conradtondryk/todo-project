@@ -59,7 +59,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
         Commands::View => {
-            for task in tasks.iter() {
+            for task in &tasks {
                 println!("{:?}", task.name);
                 println!("{:?}", task.completed);
             }
