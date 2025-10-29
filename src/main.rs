@@ -46,8 +46,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
                 completed: false,
             };
             tasks.push(data);
-            let file = File::create("list.json")?;
-            serde_json::to_writer(file, &tasks)?;
+            serde_json::to_writer(File::create("list.json")?, &tasks)?;
             Ok(())
         }
         Commands::Remove { name } => {
@@ -57,8 +56,8 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
                 .ok_or_else(|| format!("Task '{name}' not found!"))?;
             tasks.remove(index);
             println!("{name} removed!");
-            let file = File::create("list.json")?;
-            serde_json::to_writer(file, &tasks)?;
+
+            serde_json::to_writer(File::create("list.json")?, &tasks)?;
             Ok(())
         }
         Commands::View => {
@@ -75,8 +74,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
                 .ok_or_else(|| format!("Task '{name}' not found!"))?;
             tasks[index].completed = true;
             println!("'{name}' completed!");
-            let file = File::create("list.json")?;
-            serde_json::to_writer(file, &tasks)?;
+            serde_json::to_writer(File::create("list.json")?, &tasks)?;
             Ok(())
         }
     }
