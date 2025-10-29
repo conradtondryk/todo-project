@@ -24,23 +24,35 @@ struct Task {
     completed: bool,
 }
 
-fn json_editor() -> Result<(), Box<dyn std::error::Error>> {
+fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new("list.json");
 
     let json_data = fs::read_to_string(path).expect("");
     let user: Task = serde_json::from_str(&json_data)?;
-    println!("{:?}", user.id);
-    println!("{:?}", user.name);
-    println!("{:?}", user.completed);
-    Ok(())
+
+    match command {
+        Commands::Add { name } => {
+            println!("{name} added!");
+            Ok(())
+        }
+        Commands::Remove { name } => {
+            println!("{name} removed!");
+            Ok(())
+        }
+        Commands::View => {
+            println!("{:?}", user.id);
+            println!("{:?}", user.name);
+            println!("{:?}", user.completed);
+            Ok(())
+        }
+    }
 }
 
 fn main() {
     let input = Cli::parse();
 
-    match input.command {
-        Commands::Add { name } => println!("{name} added!"),
-        Commands::Remove { name } => println!("{name} removed!"),
-        Commands::View => json_editor().unwrap(),
+    let cmd = input.command;
+    if let Err(e) = json_editor(cmd) {
+        eprintln!("Error: {}", e);
     }
 }
