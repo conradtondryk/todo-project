@@ -27,13 +27,6 @@ struct Task {
     completed: bool,
 }
 
-// fn writer(task) -> Result<(), Box<dyn std::error::Error>> {
-//     let json_data = fs::read_to_string(Path::new("list.json"))?;
-//     let mut tasks: Vec<Task> = serde_json::from_str(&json_data)?;
-//     let file = File::create("list.json")?;
-//     serde_json::to_writer(file, &tasks)?;
-// }
-
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     let json_data = fs::read_to_string(Path::new("list.json"))?;
     let mut tasks: Vec<Task> = serde_json::from_str(&json_data)?;
@@ -81,8 +74,8 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let input = Cli::parse();
-    let cmd = input.command;
-    json_editor(cmd)?;
+    let Cli { command } = Cli::parse();
+
+    json_editor(command)?;
     Ok(())
 }
