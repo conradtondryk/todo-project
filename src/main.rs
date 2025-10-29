@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic)]
+
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 
