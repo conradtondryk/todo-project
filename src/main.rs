@@ -63,7 +63,15 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             }
             Ok(())
         }
-        Commands::Complete { name } => Ok(()),
+        Commands::Complete { name } => {
+            let index = tasks
+                .iter()
+                .position(|task| task.name == name)
+                .ok_or_else(|| format!("Task '{name}' not found!"))?;
+            tasks[index].completed = true;
+
+            Ok(())
+        }
     }
 }
 
