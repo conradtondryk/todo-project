@@ -23,10 +23,16 @@ enum Commands {
 
 #[derive(Deserialize, Serialize, Debug)]
 struct Task {
-    id: i32,
     name: String,
     completed: bool,
 }
+
+// fn writer(task) -> Result<(), Box<dyn std::error::Error>> {
+//     let json_data = fs::read_to_string(Path::new("list.json"))?;
+//     let mut tasks: Vec<Task> = serde_json::from_str(&json_data)?;
+//     let file = File::create("list.json")?;
+//     serde_json::to_writer(file, &tasks)?;
+// }
 
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     let json_data = fs::read_to_string(Path::new("list.json"))?;
@@ -36,7 +42,6 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
         Commands::Add { name } => {
             println!("{name} added!");
             let data = Task {
-                id: tasks.len() as i32 + 1,
                 name: name.clone(),
                 completed: false,
             };
