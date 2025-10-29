@@ -46,6 +46,10 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::Remove { name } => {
             println!("{name} removed!");
+            let index = tasks.iter().position(|task| task.name == name).unwrap();
+            tasks.remove(index);
+            let file = File::create("list.json")?;
+            serde_json::to_writer(file, &tasks)?;
             Ok(())
         }
         Commands::View => {
