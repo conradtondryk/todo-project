@@ -15,10 +15,24 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Add { name: String },
-    Remove { name: String },
-    View,
-    Complete { name: String },
+    Add {
+        name: String,
+    },
+    Remove {
+        name: String,
+    },
+    View {
+        #[command(subcommand)]
+        history: Option<ViewSubcommand>,
+    },
+    Complete {
+        name: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum ViewSubcommand {
+    History,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -53,13 +67,24 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             serde_json::to_writer(File::create("list.json")?, &tasks)?;
             Ok(())
         }
-        Commands::View => {
-            for task in tasks.iter() {
-                println!("{:?}", task.name);
-                println!("{:?}", task.completed);
+        Commands::View { history } => match history {
+            Some(ViewSubcommand::History) => {
+                for task in tasks.iter() {
+                    if task.completed {
+                        println!("{:?}", task.name)
+                    }
+                }
+                Ok(())
             }
-            Ok(())
-        }
+            None => {
+                for task in tasks.iter() {
+                    if !task.completed {
+                        println!("{:?}", task.name)
+                    }
+                }
+                Ok(())
+            }
+        },
         Commands::Complete { name } => {
             let index = tasks
                 .iter()
@@ -75,7 +100,6 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Cli { command } = Cli::parse();
-
     json_editor(command)?;
     Ok(())
 }
