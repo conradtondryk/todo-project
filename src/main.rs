@@ -16,24 +16,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Add {
-        name: String,
-    },
-    Remove {
-        name: String,
-    },
-    View {
-        #[command(subcommand)]
-        history: Option<ViewSubcommand>,
-    },
-    Complete {
-        name: String,
-    },
-}
-
-#[derive(Subcommand)]
-enum ViewSubcommand {
-    History,
+    Add { name: String },
+    Remove { id: usize },
+    View,
+    Complete { name: String },
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -42,7 +28,7 @@ struct Task {
     completed: bool,
 }
 
-struct TodoList {
+struct _TaskList {
     finished: Vec<Task>,
     unfinished: Vec<Task>,
 }
@@ -62,41 +48,26 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             serde_json::to_writer(File::create("list.json")?, &tasks)?;
             Ok(())
         }
-        Commands::Remove { name } => {
-            let index = tasks
-                .iter()
-                .position(|task| task.name == name)
-                .ok_or_else(|| format!("Task '{name}' not found!"))?;
-            tasks.remove(index);
-            println!("{name} removed!");
-
+        Commands::Remove { id } => {
+            let removed = tasks.remove(id - 1);
+            println!("{} removed! ({})", id, removed.name);
             serde_json::to_writer(File::create("list.json")?, &tasks)?;
             Ok(())
         }
-        Commands::View { history } => match history {
-            Some(ViewSubcommand::History) => {
-                for task in &tasks {
-                    if task.completed {
-                        println!("{:?}", task.name);
-                    }
+        Commands::View => {
+            for task in &tasks {
+                if !task.completed {
+                    println!("{:?}) {:?}", tasks, task.name);
                 }
-                Ok(())
             }
-            None => {
-                for task in &tasks {
-                    if !task.completed {
-                        println!("{:?}", task.name);
-                    }
-                }
-                Ok(())
-            }
-        },
+            Ok(())
+        }
         Commands::Complete { name } => {
             let index = tasks
                 .iter()
                 .position(|task| task.name == name)
                 .ok_or_else(|| format!("Task '{name}' not found!"))?;
-            tasks[index].completed = true;
+            tasks.remove(index);
             println!("'{name}' completed!");
             serde_json::to_writer(File::create("list.json")?, &tasks)?;
             Ok(())
