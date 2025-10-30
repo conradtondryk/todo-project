@@ -55,9 +55,9 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
         Commands::View => {
-            for (i, task) in tasks.iter().enumerate() {
+            tasks.iter().enumerate().for_each(|(i, task)| {
                 println!("{}) {}", i + 1, task.name);
-            }
+            });
             Ok(())
         }
         Commands::Complete { name } => {
