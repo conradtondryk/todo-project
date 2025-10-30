@@ -1,3 +1,4 @@
+#![warn(clippy::pedantic)]
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 
@@ -41,6 +42,11 @@ struct Task {
     completed: bool,
 }
 
+struct TodoList {
+    finished: Vec<Task>,
+    unfinished: Vec<Task>,
+}
+
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     let json_data = fs::read_to_string(Path::new("list.json"))?;
     let mut tasks: Vec<Task> = serde_json::from_str(&json_data)?;
@@ -69,17 +75,17 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::View { history } => match history {
             Some(ViewSubcommand::History) => {
-                for task in tasks.iter() {
+                for task in &tasks {
                     if task.completed {
-                        println!("{:?}", task.name)
+                        println!("{:?}", task.name);
                     }
                 }
                 Ok(())
             }
             None => {
-                for task in tasks.iter() {
+                for task in &tasks {
                     if !task.completed {
-                        println!("{:?}", task.name)
+                        println!("{:?}", task.name);
                     }
                 }
                 Ok(())
@@ -97,6 +103,12 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 }
+
+// add id for easier task removing
+// id = tasks.len() + 1
+// need a way to not count the completed tasks
+// logic for id shifting when complete tasks if tasks.id > task.id { let task.id = task.id - 1}
+// add timestamps
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Cli { command } = Cli::parse();
