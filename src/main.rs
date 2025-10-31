@@ -1,4 +1,5 @@
 #![warn(clippy::pedantic)]
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 
@@ -38,7 +39,7 @@ struct _TaskList {
     unfinished: Vec<Task>,
 }
 
-fn load_tasks() -> Result<Vec<Task>, Box<dyn std::error::Error>> {
+fn load_tasks() -> Result<Vec<Task>> {
     match fs::read_to_string(TASKS_FILE) {
         Ok(data) => Ok(serde_json::from_str(&data)?),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(vec![]),
@@ -46,12 +47,12 @@ fn load_tasks() -> Result<Vec<Task>, Box<dyn std::error::Error>> {
     }
 }
 
-fn save_tasks(tasks: &[Task]) -> Result<(), Box<dyn std::error::Error>> {
+fn save_tasks(tasks: &[Task]) -> Result<()> {
     serde_json::to_writer(File::create(TASKS_FILE)?, tasks)?;
     Ok(())
 }
 
-fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
+fn json_editor(command: Commands) -> Result<()> {
     let mut tasks: Vec<Task> = load_tasks()?;
 
     match command {
@@ -78,7 +79,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             let task = tasks
                 .iter_mut()
                 .find(|task| task.name == name)
-                .ok_or_else(|| format!("Task '{name}' not found!"))?;
+                .context(format!("Task '{name}' not found!"))?;
             task.state = State::Completed;
             println!("'{name}' completed!");
             save_tasks(&tasks)?;
@@ -87,7 +88,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     let Cli { command } = Cli::parse();
     json_editor(command)?;
     Ok(())
