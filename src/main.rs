@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use std::fs::{self, File};
 
+const TASKS_FILE: &str = "list.json";
+
 #[derive(Parser)]
 #[command(name = "todo")]
 struct Cli {
@@ -31,7 +33,7 @@ struct _TaskList {
 }
 
 fn load_tasks() -> Result<Vec<Task>, Box<dyn std::error::Error>> {
-    match fs::read_to_string("list.json") {
+    match fs::read_to_string(TASKS_FILE) {
         Ok(data) => Ok(serde_json::from_str(&data)?),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(vec![]),
         Err(e) => Err(e.into()),
@@ -39,7 +41,7 @@ fn load_tasks() -> Result<Vec<Task>, Box<dyn std::error::Error>> {
 }
 
 fn save_tasks(tasks: &[Task]) -> Result<(), Box<dyn std::error::Error>> {
-    serde_json::to_writer(File::create("list.json")?, tasks)?;
+    serde_json::to_writer(File::create(TASKS_FILE)?, tasks)?;
     Ok(())
 }
 
