@@ -2,10 +2,7 @@
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 
-use std::{
-    fs::{self, File},
-    path::Path,
-};
+use std::fs::{self, File};
 
 #[derive(Parser)]
 #[command(name = "todo")]
@@ -34,11 +31,10 @@ struct _TaskList {
 }
 
 fn load_tasks() -> Result<Vec<Task>, Box<dyn std::error::Error>> {
-    if Path::new("list.json").exists() {
-        let data = fs::read_to_string("list.json")?;
-        serde_json::from_str(&data).map_err(Into::into)
-    } else {
-        Ok(vec![])
+    match fs::read_to_string("list.json") {
+        Ok(data) => Ok(serde_json::from_str(&data)?),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(vec![]),
+        Err(e) => Err(e.into()),
     }
 }
 
