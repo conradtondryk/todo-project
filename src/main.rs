@@ -33,31 +33,43 @@ struct _TaskList {
     unfinished: Vec<Task>,
 }
 
+fn load_tasks() -> Result<Vec<Task>, Box<dyn std::error::Error>> {
+    if Path::new("list.json").exists() {
+        let data = fs::read_to_string("list.json")?;
+        serde_json::from_str(&data).map_err(Into::into)
+    } else {
+        Ok(vec![])
+    }
+}
+
+fn save_tasks(tasks: &[Task]) -> Result<(), Box<dyn std::error::Error>> {
+    serde_json::to_writer(File::create("list.json")?, tasks)?;
+    Ok(())
+}
+
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
-    let json_data = fs::read_to_string(Path::new("list.json"))?;
-    let mut tasks: Vec<Task> = serde_json::from_str(&json_data)?;
+    let mut tasks: Vec<Task> = load_tasks()?;
+    let changed;
 
     match command {
         Commands::Add { name } => {
-            println!("{name} added!");
             tasks.push(Task {
-                name,
+                name: name.clone(),
                 completed: false,
             });
-            serde_json::to_writer(File::create("list.json")?, &tasks)?;
-            Ok(())
+            changed = true;
+            println!("{name} added!");
         }
         Commands::Remove { id } => {
             let removed = tasks.remove(id - 1);
+            changed = true;
             println!("{} removed! ({})", id, removed.name);
-            serde_json::to_writer(File::create("list.json")?, &tasks)?;
-            Ok(())
         }
         Commands::View => {
             tasks.iter().enumerate().for_each(|(i, task)| {
                 println!("{}) {}", i + 1, task.name);
             });
-            Ok(())
+            return Ok(());
         }
         Commands::Complete { name } => {
             let index = tasks
@@ -65,11 +77,14 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
                 .position(|task| task.name == name)
                 .ok_or_else(|| format!("Task '{name}' not found!"))?;
             tasks.remove(index);
+            changed = true;
             println!("'{name}' completed!");
-            serde_json::to_writer(File::create("list.json")?, &tasks)?;
-            Ok(())
         }
     }
+    if changed {
+        save_tasks(&tasks)?;
+    }
+    Ok(())
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
