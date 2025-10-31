@@ -22,9 +22,15 @@ enum Commands {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
+enum State {
+    Pending,
+    Completed,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 struct Task {
     name: String,
-    completed: bool,
+    state: State,
 }
 
 struct _TaskList {
@@ -52,7 +58,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
         Commands::Add { name } => {
             tasks.push(Task {
                 name: name.clone(),
-                completed: false,
+                state: State::Pending,
             });
             println!("{name} added!");
             save_tasks(&tasks)?;
@@ -69,11 +75,11 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             return Ok(());
         }
         Commands::Complete { name } => {
-            let index = tasks
-                .iter()
-                .position(|task| task.name == name)
+            let task = tasks
+                .iter_mut()
+                .find(|task| task.name == name)
                 .ok_or_else(|| format!("Task '{name}' not found!"))?;
-            tasks.remove(index);
+            task.state = State::Completed;
             println!("'{name}' completed!");
             save_tasks(&tasks)?;
         }
