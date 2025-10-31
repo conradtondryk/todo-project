@@ -41,7 +41,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
         Commands::Add { name } => {
             println!("{name} added!");
             let data = Task {
-                name: name.clone(),
+                name,
                 completed: false,
             };
             tasks.push(data);
@@ -72,12 +72,6 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 }
-
-// add id for easier task removing
-// id = tasks.len() + 1
-// need a way to not count the completed tasks
-// logic for id shifting when complete tasks if tasks.id > task.id { let task.id = task.id - 1}
-// add timestamps
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Cli { command } = Cli::parse();
