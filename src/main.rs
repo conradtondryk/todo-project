@@ -40,11 +40,10 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     match command {
         Commands::Add { name } => {
             println!("{name} added!");
-            let data = Task {
+            tasks.push(Task {
                 name,
                 completed: false,
-            };
-            tasks.push(data);
+            });
             serde_json::to_writer(File::create("list.json")?, &tasks)?;
             Ok(())
         }
