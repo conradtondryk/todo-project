@@ -49,7 +49,6 @@ fn save_tasks(tasks: &[Task]) -> Result<(), Box<dyn std::error::Error>> {
 
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     let mut tasks: Vec<Task> = load_tasks()?;
-    let changed;
 
     match command {
         Commands::Add { name } => {
@@ -57,13 +56,13 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
                 name: name.clone(),
                 completed: false,
             });
-            changed = true;
             println!("{name} added!");
+            save_tasks(&tasks)?;
         }
         Commands::Remove { id } => {
             let removed = tasks.remove(id - 1);
-            changed = true;
             println!("{} removed! ({})", id, removed.name);
+            save_tasks(&tasks)?;
         }
         Commands::View => {
             tasks.iter().enumerate().for_each(|(i, task)| {
@@ -77,12 +76,9 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
                 .position(|task| task.name == name)
                 .ok_or_else(|| format!("Task '{name}' not found!"))?;
             tasks.remove(index);
-            changed = true;
             println!("'{name}' completed!");
+            save_tasks(&tasks)?;
         }
-    }
-    if changed {
-        save_tasks(&tasks)?;
     }
     Ok(())
 }
