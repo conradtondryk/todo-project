@@ -3,6 +3,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 
+use std::fmt::{self, Display};
 use std::fs::{self, File};
 
 const TASKS_FILE: &str = "list.json";
@@ -28,10 +29,25 @@ enum State {
     Completed,
 }
 
+impl Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            State::Pending => write!(f, "[ ]"),
+            State::Completed => write!(f, "[x]"),
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 struct Task {
     name: String,
     state: State,
+}
+
+impl Display for Task {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {}", self.state, self.name)
+    }
 }
 
 struct _TaskList {
@@ -71,7 +87,7 @@ fn json_editor(command: Commands) -> Result<()> {
         }
         Commands::View => {
             tasks.iter().enumerate().for_each(|(i, task)| {
-                println!("{}) {}", i + 1, task.name);
+                println!("{}) {}", i + 1, task);
             });
             return Ok(());
         }
