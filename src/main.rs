@@ -70,13 +70,9 @@ impl Commands {
             println!("{}) {}", i + 1, task.name);
         });
     }
-    fn task_complete(tasks: &mut Vec<Task>, name: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let index = tasks
-            .iter()
-            .position(|task| task.name == name)
-            .ok_or_else(|| format!("Task '{name}' not found!"))?;
-        tasks.remove(index);
-        println!("'{name}' completed!");
+    fn task_complete(tasks: &mut Vec<Task>, id: usize) -> Result<(), Box<dyn std::error::Error>> {
+        tasks.remove(id - 1);
+        println!("'{id}' completed!");
         Ok(())
     }
 }
