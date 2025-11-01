@@ -43,16 +43,42 @@ fn save_tasks(tasks: &[Task]) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn add_task(tasks: &mut Vec<Task>, name: &str) -> Result<(), Box<dyn std::error::Error>> {
-    if name.is_empty() {
-        return Err("Name cannot be empty.".into());
+impl Commands {
+    fn add_task(tasks: &mut Vec<Task>, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+        if name.is_empty() {
+            return Err("Name cannot be empty.".into());
+        }
+        tasks.push(Task {
+            name: name.to_string(),
+            completed: false,
+        });
+        println!("{name} added!");
+        Ok(())
     }
-    tasks.push(Task {
-        name: name.to_string(),
-        completed: false,
-    });
-    println!("{name} added!");
-    Ok(())
+    fn remove_task(tasks: &mut Vec<Task>, id: usize) -> Result<(), Box<dyn std::error::Error>> {
+        if id == 0 {
+            return Err("ID cannot be 0.".into());
+        } else if id > tasks.len() {
+            return Err("ID is out of range.".into());
+        }
+        let removed = tasks.remove(id - 1);
+        println!("{} removed! ({})", id, removed.name);
+        Ok(())
+    }
+    fn view_tasks(tasks: &mut [Task]) {
+        tasks.iter().enumerate().for_each(|(i, task)| {
+            println!("{}) {}", i + 1, task.name);
+        });
+    }
+    fn task_complete(tasks: &mut Vec<Task>, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let index = tasks
+            .iter()
+            .position(|task| task.name == name)
+            .ok_or_else(|| format!("Task '{name}' not found!"))?;
+        tasks.remove(index);
+        println!("'{name}' completed!");
+        Ok(())
+    }
 }
 
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
@@ -60,27 +86,18 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
 
     match command {
         Commands::Add { name } => {
-            add_task(&mut tasks, &name)?;
+            Commands::add_task(&mut tasks, &name)?;
             save_tasks(&tasks)?;
         }
         Commands::Remove { id } => {
-            let removed = tasks.remove(id - 1);
-            println!("{} removed! ({})", id, removed.name);
+            Commands::remove_task(&mut tasks, id)?;
             save_tasks(&tasks)?;
         }
         Commands::View => {
-            tasks.iter().enumerate().for_each(|(i, task)| {
-                println!("{}) {}", i + 1, task.name);
-            });
-            return Ok(());
+            Commands::view_tasks(&mut tasks);
         }
         Commands::Complete { name } => {
-            let index = tasks
-                .iter()
-                .position(|task| task.name == name)
-                .ok_or_else(|| format!("Task '{name}' not found!"))?;
-            tasks.remove(index);
-            println!("'{name}' completed!");
+            Commands::task_complete(&mut tasks, &name)?;
             save_tasks(&tasks)?;
         }
     }
