@@ -43,16 +43,24 @@ fn save_tasks(tasks: &[Task]) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn add_task(tasks: &mut Vec<Task>, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+    if name.is_empty() {
+        return Err("Name cannot be empty.".into());
+    }
+    tasks.push(Task {
+        name: name.to_string(),
+        completed: false,
+    });
+    println!("{name} added!");
+    Ok(())
+}
+
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     let mut tasks: Vec<Task> = load_tasks()?;
 
     match command {
         Commands::Add { name } => {
-            tasks.push(Task {
-                name: name.clone(),
-                completed: false,
-            });
-            println!("{name} added!");
+            add_task(&mut tasks, &name)?;
             save_tasks(&tasks)?;
         }
         Commands::Remove { id } => {
