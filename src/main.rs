@@ -16,7 +16,6 @@ enum Commands {
     Add { name: String },
     Remove { id: usize },
     View,
-    Complete { id: usize },
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -65,16 +64,6 @@ impl Commands {
             println!("{} {}) {}", task.timestamp, i + 1, task.name);
         });
     }
-    fn task_complete(tasks: &mut Vec<Task>, id: usize) -> Result<(), Box<dyn std::error::Error>> {
-        if id == 0 {
-            return Err("ID cannot be 0.".into());
-        } else if id > tasks.len() {
-            return Err("ID is out of range.".into());
-        }
-        tasks.remove(id - 1);
-        println!("'{id}' completed!");
-        Ok(())
-    }
 }
 
 fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
@@ -91,10 +80,6 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::View => {
             Commands::view_tasks(&mut tasks);
-        }
-        Commands::Complete { id } => {
-            Commands::task_complete(&mut tasks, id)?;
-            save_tasks(&tasks)?;
         }
     }
     Ok(())
