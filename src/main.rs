@@ -1,19 +1,20 @@
 #![warn(clippy::pedantic)]
-use anyhow::Result;
-use chrono::Local;
+use anyhow::{Result, bail};
+use chrono::{DateTime, Local};
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
+use std::io::ErrorKind;
 
 #[derive(Parser)]
 #[command(name = "todo")]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Command,
 }
 
 #[derive(Subcommand)]
-enum Commands {
+enum Command {
     Add { name: String },
     Remove { id: usize },
     View,
@@ -21,7 +22,7 @@ enum Commands {
 
 #[derive(Deserialize, Serialize, Debug)]
 struct Task {
-    timestamp: chrono::DateTime<Local>,
+    timestamp: DateTime<Local>,
     name: String,
 }
 #[derive(Deserialize, Serialize, Debug)]
@@ -32,7 +33,7 @@ impl Tasks {
     fn load() -> Result<Self> {
         match fs::read_to_string("list.json") {
             Ok(data) => serde_json::from_str(&data).map_err(Into::into),
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Tasks(vec![])),
+            Err(e) if e.kind() == ErrorKind::NotFound => Ok(Tasks(vec![])),
             Err(e) => Err(e.into()),
         }
     }
@@ -44,7 +45,7 @@ impl Tasks {
 
     fn add(&mut self, name: &str) -> Result<()> {
         if name.is_empty() {
-            return Err(anyhow::anyhow!("Name cannot be empty."));
+            bail!("Name cannot be empty.");
         }
         self.0.push(Task {
             name: name.to_string(),
@@ -55,9 +56,9 @@ impl Tasks {
     }
     fn remove(&mut self, id: usize) -> Result<()> {
         if id == 0 {
-            return Err(anyhow::anyhow!("ID cannot be 0."));
+            bail!("ID cannot be 0.");
         } else if id > self.0.len() {
-            return Err(anyhow::anyhow!("ID is out of range."));
+            bail!("ID is out of range.");
         }
         let removed = self.0.remove(id - 1);
         println!("{} removed! ({})", id, removed.name);
@@ -75,27 +76,29 @@ impl Tasks {
     }
 }
 
-fn json_editor(command: Commands) -> Result<()> {
-    let mut tasks = Tasks::load()?;
+impl Command {
+    fn handler(self) -> Result<()> {
+        let mut tasks = Tasks::load()?;
 
-    match command {
-        Commands::Add { name } => {
-            tasks.add(&name)?;
-            tasks.save()?;
+        match self {
+            Command::Add { name } => {
+                tasks.add(&name)?;
+                tasks.save()?;
+            }
+            Command::Remove { id } => {
+                tasks.remove(id)?;
+                tasks.save()?;
+            }
+            Command::View => {
+                tasks.view();
+            }
         }
-        Commands::Remove { id } => {
-            tasks.remove(id)?;
-            tasks.save()?;
-        }
-        Commands::View => {
-            tasks.view();
-        }
+        Ok(())
     }
-    Ok(())
 }
 
 fn main() -> Result<()> {
     let Cli { command } = Cli::parse();
-    json_editor(command)?;
+    command.handler()?;
     Ok(())
 }
