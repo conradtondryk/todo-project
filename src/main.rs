@@ -20,7 +20,7 @@ enum Commands {
 
 #[derive(Deserialize, Serialize, Debug)]
 struct Task {
-    timestamp: String,
+    timestamp: chrono::DateTime<Local>,
     name: String,
 }
 
@@ -44,7 +44,7 @@ impl Commands {
         }
         tasks.push(Task {
             name: name.to_string(),
-            timestamp: Local::now().format("%d/%m/%Y %H:%M").to_string(),
+            timestamp: Local::now(),
         });
         println!("{name} added!");
         Ok(())
@@ -61,7 +61,12 @@ impl Commands {
     }
     fn view_tasks(tasks: &mut [Task]) {
         tasks.iter().enumerate().for_each(|(i, task)| {
-            println!("{} {}) {}", task.timestamp, i + 1, task.name);
+            println!(
+                "{} ({}) {}",
+                task.timestamp.format("%d/%m/%Y %H:%M"),
+                i + 1,
+                task.name
+            );
         });
     }
 }
