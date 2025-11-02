@@ -1,4 +1,5 @@
 #![warn(clippy::pedantic)]
+use anyhow::Result;
 use chrono::Local;
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
@@ -28,7 +29,7 @@ struct Task {
 struct Tasks(Vec<Task>);
 
 impl Tasks {
-    fn load() -> Result<Self, Box<dyn std::error::Error>> {
+    fn load() -> Result<Self> {
         match fs::read_to_string("list.json") {
             Ok(data) => serde_json::from_str(&data).map_err(Into::into),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Tasks(vec![])),
@@ -36,14 +37,14 @@ impl Tasks {
         }
     }
 
-    fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn save(&self) -> Result<()> {
         serde_json::to_writer(File::create("list.json")?, &self.0)?;
         Ok(())
     }
 
-    fn add(&mut self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+    fn add(&mut self, name: &str) -> Result<()> {
         if name.is_empty() {
-            return Err("Name cannot be empty.".into());
+            return Err(anyhow::anyhow!("Name cannot be empty."));
         }
         self.0.push(Task {
             name: name.to_string(),
@@ -52,11 +53,11 @@ impl Tasks {
         println!("{name} added!");
         Ok(())
     }
-    fn remove(&mut self, id: usize) -> Result<(), Box<dyn std::error::Error>> {
+    fn remove(&mut self, id: usize) -> Result<()> {
         if id == 0 {
-            return Err("ID cannot be 0.".into());
+            return Err(anyhow::anyhow!("ID cannot be 0."));
         } else if id > self.0.len() {
-            return Err("ID is out of range.".into());
+            return Err(anyhow::anyhow!("ID is out of range."));
         }
         let removed = self.0.remove(id - 1);
         println!("{} removed! ({})", id, removed.name);
@@ -74,7 +75,7 @@ impl Tasks {
     }
 }
 
-fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
+fn json_editor(command: Commands) -> Result<()> {
     let mut tasks = Tasks::load()?;
 
     match command {
@@ -93,7 +94,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     let Cli { command } = Cli::parse();
     json_editor(command)?;
     Ok(())
