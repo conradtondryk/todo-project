@@ -25,11 +25,6 @@ struct Task {
     completed: bool,
 }
 
-struct _TaskList {
-    finished: Vec<Task>,
-    unfinished: Vec<Task>,
-}
-
 fn load_tasks() -> Result<Vec<Task>, Box<dyn std::error::Error>> {
     match fs::read_to_string("list.json") {
         Ok(data) => serde_json::from_str(&data).map_err(Into::into),
@@ -70,9 +65,15 @@ impl Commands {
             println!("{}) {}", i + 1, task.name);
         });
     }
-    fn task_complete(tasks: &mut Vec<Task>, id: usize) {
+    fn task_complete(tasks: &mut Vec<Task>, id: usize) -> Result<(), Box<dyn std::error::Error>> {
+        if id == 0 {
+            return Err("ID cannot be 0.".into());
+        } else if id > tasks.len() {
+            return Err("ID is out of range.".into());
+        }
         tasks.remove(id - 1);
         println!("'{id}' completed!");
+        Ok(())
     }
 }
 
@@ -92,7 +93,7 @@ fn json_editor(command: Commands) -> Result<(), Box<dyn std::error::Error>> {
             Commands::view_tasks(&mut tasks);
         }
         Commands::Complete { id } => {
-            Commands::task_complete(&mut tasks, id);
+            Commands::task_complete(&mut tasks, id)?;
             save_tasks(&tasks)?;
         }
     }
