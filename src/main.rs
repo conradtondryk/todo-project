@@ -20,11 +20,33 @@ enum Command {
     View,
 }
 
+impl Command {
+    fn handle(self) -> Result<()> {
+        let mut tasks = Tasks::load()?;
+
+        match self {
+            Command::Add { name } => {
+                tasks.add(&name)?;
+                tasks.save()?;
+            }
+            Command::Remove { id } => {
+                tasks.remove(id)?;
+                tasks.save()?;
+            }
+            Command::View => {
+                tasks.view();
+            }
+        }
+        Ok(())
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 struct Task {
     timestamp: DateTime<Local>,
     name: String,
 }
+
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(transparent)]
 struct Tasks(Vec<Task>);
@@ -76,29 +98,8 @@ impl Tasks {
     }
 }
 
-impl Command {
-    fn handler(self) -> Result<()> {
-        let mut tasks = Tasks::load()?;
-
-        match self {
-            Command::Add { name } => {
-                tasks.add(&name)?;
-                tasks.save()?;
-            }
-            Command::Remove { id } => {
-                tasks.remove(id)?;
-                tasks.save()?;
-            }
-            Command::View => {
-                tasks.view();
-            }
-        }
-        Ok(())
-    }
-}
-
 fn main() -> Result<()> {
     let Cli { command } = Cli::parse();
-    command.handler()?;
+    command.handle()?;
     Ok(())
 }
