@@ -1,7 +1,7 @@
 #![warn(clippy::pedantic)]
+use chrono::Local;
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
-
 use std::fs::{self, File};
 
 #[derive(Parser)]
@@ -21,8 +21,8 @@ enum Commands {
 
 #[derive(Deserialize, Serialize, Debug)]
 struct Task {
+    timestamp: String,
     name: String,
-    completed: bool,
 }
 
 fn load_tasks() -> Result<Vec<Task>, Box<dyn std::error::Error>> {
@@ -45,7 +45,7 @@ impl Commands {
         }
         tasks.push(Task {
             name: name.to_string(),
-            completed: false,
+            timestamp: Local::now().format("%d/%m/%Y %H:%M").to_string(),
         });
         println!("{name} added!");
         Ok(())
@@ -62,7 +62,7 @@ impl Commands {
     }
     fn view_tasks(tasks: &mut [Task]) {
         tasks.iter().enumerate().for_each(|(i, task)| {
-            println!("{}) {}", i + 1, task.name);
+            println!("{} {}) {}", task.timestamp, i + 1, task.name);
         });
     }
     fn task_complete(tasks: &mut Vec<Task>, id: usize) -> Result<(), Box<dyn std::error::Error>> {
